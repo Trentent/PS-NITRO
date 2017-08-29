@@ -1057,7 +1057,7 @@ Set-StrictMode -Version Latest
             'GMT-06:00-CST-America/Cancun','GMT-06:00-CST-America/Costa_Rica','GMT-06:00-CST-America/El_Salvador','GMT-06:00-CST-America/Guatemala','GMT-06:00-CST-America/Managua',
             'GMT-06:00-CST-America/Merida','GMT-06:00-CST-America/Mexico_City','GMT-06:00-CST-America/Monterrey','GMT-06:00-CST-America/Regina','GMT-06:00-CST-America/Swift_Current',
             'GMT-06:00-CST-America/Tegucigalpa','GMT-06:00-EAST-Pacific/Easter','GMT-06:00-GALT-Pacific/Galapagos','GMT-06:00-MDT-America/Boise','GMT-06:00-MDT-America/Cambridge_Bay',
-            'GMT-06:00-MDT-America/Denver','GMT-06:00-MDT-America/Edmonton','GMT-06:00-MDT-America/Inuvik','GMT-06:00-MDT-America/Ojinaga','GMT-06:00-MDT-America/Shiprock',
+            'GMT-06:00-MDT-America/Denver','GMT-07:00-MST-America/Edmonton','GMT-06:00-MDT-America/Inuvik','GMT-06:00-MDT-America/Ojinaga','GMT-06:00-MDT-America/Shiprock',
             'GMT-06:00-MDT-America/Yellowknife',
             'GMT-07:00-MST-America/Chihuahua','GMT-07:00-MST-America/Dawson_Creek','GMT-07:00-MST-America/Hermosillo','GMT-07:00-MST-America/Mazatlan','GMT-07:00-MST-America/Phoenix','GMT-07:00-PDT-America/Dawson','GMT-07:00-PDT-America/Los_Angeles','GMT-07:00-PDT-America/Tijuana','GMT-07:00-PDT-America/Vancouver','GMT-07:00-PDT-America/Whitehorse',
             'GMT-08:00-AKDT-America/Anchorage','GMT-08:00-AKDT-America/Juneau','GMT-08:00-AKDT-America/Nome','GMT-08:00-AKDT-America/Sitka','GMT-08:00-AKDT-America/Yakutat','GMT-08:00-MeST-America/Metlakatla','GMT-08:00-PST-America/Santa_Isabel','GMT-08:00-PST-Pacific/Pitcairn',
