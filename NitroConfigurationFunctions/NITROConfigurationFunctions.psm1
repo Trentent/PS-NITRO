@@ -1,4 +1,4 @@
-﻿<# 
+<# 
 .SYNOPSIS
     This module file contains NetScaler Configuration functions that extend the original Citrix NITRO Module.
 .DESCRIPTION
@@ -861,6 +861,12 @@ Set-StrictMode -Version Latest
         }
     }
 
+
+
+    
+
+
+
     # Enable-NSFeature is part of the Citrix NITRO Module
     # Copied from Citrix's Module to ensure correct scoping of variables and functions
     function Enable-NSFeature {
@@ -1057,7 +1063,7 @@ Set-StrictMode -Version Latest
             'GMT-06:00-CST-America/Cancun','GMT-06:00-CST-America/Costa_Rica','GMT-06:00-CST-America/El_Salvador','GMT-06:00-CST-America/Guatemala','GMT-06:00-CST-America/Managua',
             'GMT-06:00-CST-America/Merida','GMT-06:00-CST-America/Mexico_City','GMT-06:00-CST-America/Monterrey','GMT-06:00-CST-America/Regina','GMT-06:00-CST-America/Swift_Current',
             'GMT-06:00-CST-America/Tegucigalpa','GMT-06:00-EAST-Pacific/Easter','GMT-06:00-GALT-Pacific/Galapagos','GMT-06:00-MDT-America/Boise','GMT-06:00-MDT-America/Cambridge_Bay',
-            'GMT-06:00-MDT-America/Denver','GMT-06:00-MDT-America/Edmonton','GMT-06:00-MDT-America/Inuvik','GMT-06:00-MDT-America/Ojinaga','GMT-06:00-MDT-America/Shiprock',
+            'GMT-06:00-MDT-America/Denver','GMT-07:00-MST-America/Edmonton','GMT-06:00-MDT-America/Inuvik','GMT-06:00-MDT-America/Ojinaga','GMT-06:00-MDT-America/Shiprock',
             'GMT-06:00-MDT-America/Yellowknife',
             'GMT-07:00-MST-America/Chihuahua','GMT-07:00-MST-America/Dawson_Creek','GMT-07:00-MST-America/Hermosillo','GMT-07:00-MST-America/Mazatlan','GMT-07:00-MST-America/Phoenix','GMT-07:00-PDT-America/Dawson','GMT-07:00-PDT-America/Los_Angeles','GMT-07:00-PDT-America/Tijuana','GMT-07:00-PDT-America/Vancouver','GMT-07:00-PDT-America/Whitehorse',
             'GMT-08:00-AKDT-America/Anchorage','GMT-08:00-AKDT-America/Juneau','GMT-08:00-AKDT-America/Nome','GMT-08:00-AKDT-America/Sitka','GMT-08:00-AKDT-America/Yakutat','GMT-08:00-MeST-America/Metlakatla','GMT-08:00-PST-America/Santa_Isabel','GMT-08:00-PST-Pacific/Pitcairn',
@@ -1279,6 +1285,93 @@ Set-StrictMode -Version Latest
             If ($response.PSObject.Properties['systemparameter'])
             {
                 return $response.systemparameter.doppler
+            }
+            else
+            {
+                return $null
+            }
+        }
+    }
+
+    function Get-NSVPXConfiguration {
+        <#
+        .SYNOPSIS
+            Retrieve the Configuration for "VPX" resource
+        .DESCRIPTION
+            Retrieve the Configuration for "VPX" resource
+        .PARAMETER NSSession
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+        .EXAMPLE
+            Get-NSVPXConfiguration -NSSession $Session
+        .NOTES
+            2017-09-09 : Trentent Tye
+        #>
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory=$true)] [PSObject]$NSSession
+        )
+        Begin {
+            Write-Verbose "$($MyInvocation.MyCommand): Enter"
+        }
+        Process {      
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType nsvpxparam -Verbose:$VerbosePreference
+        }
+        End {
+            Write-Verbose "$($MyInvocation.MyCommand): Exit"
+            If ($response.PSObject.Properties['nsvpxparam'])
+            {
+                return $response.nsvpxparam
+            }
+            else
+            {
+                return $null
+            }
+        }
+    }
+    function Set-NSVPXConfiguration {
+        <#
+        .SYNOPSIS
+            Retrieve the Citrix Customer Experience Improvement Program status
+        .DESCRIPTION
+            Retrieve the Citrix Customer Experience Improvement Program status
+        .PARAMETER NSSession
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+        .PARAMETER CPUYield
+            This setting applicable in virtual appliances, is to affect the cpu yield (relinquishing the cpu resources) in any hypervised environment.
+            
+            * There are 3 options for the behavior
+            1. YES - Allow the Virtual Appliance to yield its vCPUs periodically, if there is no data traffic.
+            2. NO - Virtual Appliance will not yield the vCPU.
+            3. DEFAULT - Restores the default behaviour, according to the license.
+            
+            * Its behavior in different scenarios:
+            1. As this setting is node specific only, it will not be applicable in Cluster and HA scenarios.
+            2. This setting is a system wide implementation and not granular to vCPUs.
+            3. No effect on the management PE.
+            Possible values = DEFAULT, YES, NO
+
+        .EXAMPLE
+            Set-NSVPXConfiguration -NSSession $Session -CPUYield Yes
+        .NOTES
+            Copyright (c) cognition IT. All rights reserved.
+        #>
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory=$true)] [PSObject]$NSSession,
+            [Parameter(Mandatory=$true)] [string]$CPUYield
+        )
+        Begin {
+            Write-Verbose "$($MyInvocation.MyCommand): Enter"
+            $payload = @{cpuyield=$CPUYield}
+        }
+        Process {       
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod PUT -Payload $payload -ResourceType nsvpxparam -Verbose:$VerbosePreference
+        }
+        End {
+            Write-Verbose "$($MyInvocation.MyCommand): Exit"
+            If ($response.PSObject.Properties['nsvpxparam'])
+            {
+                return $response.nsvpxparam.cpuyield
             }
             else
             {
@@ -3448,6 +3541,8 @@ Set-StrictMode -Version Latest
     }
     #endregion
 
+
+
     #region DONE AppExpert - Responder
     function Add-NSResponderAction {
         <#
@@ -3917,6 +4012,147 @@ Set-StrictMode -Version Latest
                 return $null
             }
         }
+    }
+    function Add-NSHTMLResponderWebPageFromText {
+        <# 
+        .SYNOPSIS 
+            Creates a HTML Responder WebPage from a string fed to this function
+        .DESCRIPTION 
+            Creates a HTML Responder WebPage from a string fed to this function
+        .PARAMETER ResponderName 
+            Name you'd like the Responder to be
+        .PARAMETER Text 
+            A string to add to the responder 
+        .NOTES
+            Name: Add-NSHTMLResponderWebPageFromText
+            Author: Trentent Tye
+            Date Created: 23/08/2017 
+        .CHANGE LOG
+            Trentent Tye - 23/08/2017 - Initial Function Creation 
+        .LINK 
+        https://theorypc.ca
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$ResponderName,
+            [Parameter(Mandatory = $True)] [string]$Text
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $Text | Out-File "$env:temp\$responderName" ascii -Force
+
+        Add-NSSystemFile -NSSession $NSSession -PathToFile "$env:temp\$responderName" -NetScalerFolder "/var/tmp/"
+
+        $comment = "$responderName"
+
+        $payload = @{src="local:$ResponderName";name=$ResponderName;comment=$comment}
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod POST -ResourceType responderhtmlpage -Payload $payload -Action import -Verbose:$VerbosePreference
+
+        #clean up temp file
+        Remove-NSSystemFile -NSSession $NSSession -NetScalerFolder "/var/tmp" -FileName $responderName
+
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+    function Change-NSHTMLResponderWebPage {
+        <# 
+        .SYNOPSIS 
+            Sets the HTML Responder WebPage to accept a change
+        .DESCRIPTION 
+            Sets the HTML Responder WebPage to accept a change
+        .PARAMETER ResponderName 
+            Name you'd like the Responder to be
+        .NOTES
+            Name: Change-NSHTMLResponderWebPageFromText
+            Author: Trentent Tye
+            Date Created: 23/08/2017 
+        .CHANGE LOG
+            Trentent Tye - 23/08/2017 - Initial Function Creation 
+        .LINK 
+        https://theorypc.ca
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$ResponderName
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        "This is a Test" | Out-File "$env:temp\$responderName" ascii -Force
+
+        Remove-NSSystemFile -NSSession $NSSession -NetScalerFolder "/var/tmp" -FileName $responderName
+        Add-NSSystemFile -NSSession $NSSession -PathToFile "$env:temp\$responderName" -NetScalerFolder "/var/tmp/"
+  
+        $payload = @{name=$ResponderName}
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod POST -ResourceType responderhtmlpage -Payload $payload -Action update -Verbose:$VerbosePreference
+
+
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+    function Get-NSHTMLResponderWebPages {
+        <# 
+        .SYNOPSIS 
+            Gets a list of the HTML Responder WebPages
+        .DESCRIPTION 
+            Gets a list of the HTML Responder WebPages
+        .PARAMETER ResponderName 
+            (Optional) Name of a responder to query
+        .NOTES
+            Name: Change-NSHTMLResponderWebPageFromText
+            Author: Trentent Tye
+            Date Created: 23/08/2017 
+        .CHANGE LOG
+            Trentent Tye - 23/08/2017 - Initial Function Creation 
+        .LINK 
+        https://theorypc.ca
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)]  [PSObject]$NSSession,
+            [Parameter(Mandatory = $False)] [string]$ResponderName
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+       
+        if ($ResponderName) {
+            $payload = @{name=$ResponderName}
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType responderhtmlpage -Payload $payload -Verbose:$VerbosePreference
+        }
+        else {
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType responderhtmlpage -Verbose:$VerbosePreference
+        }
+        Write-Output $response
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+    function Delete-NSHTMLResponderWebPage {
+        <# 
+        .SYNOPSIS 
+            Delete a HTML Responder WebPage
+        .DESCRIPTION 
+            Delete a HTML Responder WebPage
+        .PARAMETER ResponderName 
+            Name of a responder HTML webpage to delete
+        .NOTES
+            Name: Delete-NSHTMLResponderWebPageFromText
+            Author: Trentent Tye
+            Date Created: 23/08/2017 
+        .CHANGE LOG
+            Trentent Tye - 23/08/2017 - Initial Function Creation 
+        .LINK 
+        https://theorypc.ca
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)]  [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$ResponderName
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod DELETE -ResourceType responderhtmlpage -ResourceName $ResponderName -Verbose:$VerbosePreference
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
     }
     #endregion
 
@@ -5947,6 +6183,231 @@ Set-StrictMode -Version Latest
     #endregion
 
     #region Traffic Management - Content Switching
+        function Remove-NSContentSwitchVirtualServer {
+        <# 
+        .SYNOPSIS 
+            Remove a Content Switch vServer on a NetScaler.
+        .DESCRIPTION 
+            Remove a Content Switch vServer on a NetScaler.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER Name
+            Content Switch Name
+        .NOTES 
+            Name: Add-ContentSwitch
+            Author: David Brett - Citrix CTP
+            Date Created:  21/04/2017 
+        .CHANGE LOG
+            David Brett -  21/04/2017 - Initial Script Creation 
+            Trentent Tye - 28/08/2017 - Updated to use NitroConfigurationFunctions syntax and mechanisms
+        .LINK 
+        http://bretty.me.uk
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$Name
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod DELETE -ResourceType csvserver -ResourceName $Name -Verbose:$VerbosePreference
+
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+        function Add-NSContentSwitchVirtualServer {
+        <# 
+        .SYNOPSIS 
+            Add a Content Switch on a NetScaler.
+        .DESCRIPTION 
+            Add a Content Switch on a NetScaler.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER Name
+            Content Switch Name
+        .PARAMETER ServiceType
+            Protocol used by the virtual server.
+            Possible values = HTTP, SSL, TCP, FTP, RTSP, SSL_TCP, UDP, DNS, SIP_UDP, SIP_TCP, SIP_SSL, ANY, RADIUS, RDP, MYSQL, MSSQL, DIAMETER, SSL_DIAMETER, DNS_TCP, ORACLE, SMPP
+        .PARAMETER IPv46
+            IP address of the content switching virtual server.
+            Minimum length = 1
+        .PARAMETER Port
+            Port
+        .NOTES 
+            Name: Add-ContentSwitch
+            Author: David Brett - Citrix CTP
+            Date Created:  21/04/2017 
+        .CHANGE LOG
+            David Brett -  21/04/2017 - Initial Script Creation 
+            Trentent Tye - 28/08/2017 - Updated to use NitroConfigurationFunctions syntax and mechanisms
+        .LINK 
+        http://bretty.me.uk
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$Name,
+            [Parameter(Mandatory = $True)] [ValidateSet("HTTP", "SSL", "TCP", "FTP", "RTSP", "SSL_TCP", "UDP", "DNS", "SIP_UDP", "SIP_TCP", "SIP_SSL", "ANY", "RADIUS", "RDP", "MYSQL", "MSSQL", "DIAMETER", "SSL_DIAMETER", "DNS_TCP", "ORACLE", "SMPP")] [string]$ServiceType="HTTP",
+            [Parameter(Mandatory = $True)] [string]$IPv46,
+            [Parameter(Mandatory = $True)] [string]$Port
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $payload = @{name=$Name;servicetype=$ServiceType;ipv46=$IPv46;Port=$Port}
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod POST -ResourceType csvserver -Payload $payload -Verbose:$VerbosePreference
+
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+        function Add-ContentSwitchTovServerBinding {
+        <# 
+        .SYNOPSIS 
+            Binds a Content Switching Virtual Server to a Responder Policy.
+        .DESCRIPTION 
+            Binds a Content Switching Virtual Server to a Responder Policy.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER Name
+            Name of the content switching virtual server to which the content switching policy applies.
+            Minimum length = 1
+        .PARAMETER PolicyName
+            Policies bound to this vserver.
+        .PARAMETER GoToPriorityExpression
+            Expression specifying the priority of the next policy which will get evaluated if the current policy rule evaluates to TRUE.
+        .PARAMETER Priority
+            Priority for the policy.
+        .NOTES 
+            Name: Add-ContentSwitchTovServerBinding
+            Author: Trentent Tye
+            Date Created:  28/08/2017 
+        .CHANGE LOG
+            Trentent Tye -  28/08/2017 - Initial Script Creation 
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$Name,
+            [Parameter(Mandatory = $True)] [string]$PolicyName,
+            [Parameter(Mandatory = $True)] [string]$GoToPriorityExpression,
+            [Parameter(Mandatory = $True)] [string]$Priority
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $payload = @{Name=$Name;policyname=$PolicyName;gotopriorityexpression=$GoToPriorityExpression;priority=$Priority}
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod PUT -ResourceType csvserver_responderpolicy_binding -Payload $payload -Verbose:$VerbosePreference
+        
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+        function Get-NSContentSwitchTovServerBinding {
+        <# 
+        .SYNOPSIS 
+            Binds a Content Switching Virtual Server to a Responder Policy.
+        .DESCRIPTION 
+            Binds a Content Switching Virtual Server to a Responder Policy.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER Name
+            Name of the content switching virtual server to which the content switching policy applies.
+            Minimum length = 1
+        .PARAMETER PolicyName
+            Policies bound to this vserver.
+        .PARAMETER GoToPriorityExpression
+            Expression specifying the priority of the next policy which will get evaluated if the current policy rule evaluates to TRUE.
+        .PARAMETER Priority
+            Priority for the policy.
+        .NOTES 
+            Name: Add-ContentSwitchTovServerBinding
+            Author: Trentent Tye
+            Date Created:  28/08/2017 
+        .CHANGE LOG
+            Trentent Tye -  28/08/2017 - Initial Script Creation 
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType csvserver_responderpolicy_binding?bulkbindings=yes -Verbose:$VerbosePreference
+        Write-Output $response
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+        function Remove-NSContentSwitchTovServerBinding {
+        <# 
+        .SYNOPSIS 
+            Removes a Content Switching Virtual Server to a Responder Policy.
+        .DESCRIPTION 
+            Removes a a Content Switching Virtual Server to a Responder Policy.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER PolicyName
+            Policies to be unbound.
+        .NOTES 
+            Name: Remove-ContentSwitchTovServerBinding
+            Author: Trentent Tye
+            Date Created:  28/08/2017 
+        .CHANGE LOG
+            Trentent Tye -  28/08/2017 - Initial Script Creation 
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $True)] [string]$PolicyName
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod DELETE -ResourceType csvserver_responderpolicy_binding -ResourceName $PolicyName -Verbose:$VerbosePreference
+        Write-Output $response
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+        function Get-NSContentSwitchVirtualServer {
+        <# 
+        .SYNOPSIS 
+            Gets a Content Switch on a NetScaler.
+        .DESCRIPTION 
+            Gets a Content Switch on a NetScaler.
+        .PARAMETER NSSession 
+            An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance 
+        .PARAMETER Name
+            Content Switch Name
+        .NOTES 
+            Name: Add-ContentSwitch
+            Author: David Brett - Citrix CTP
+            Date Created:  21/04/2017 
+        .CHANGE LOG
+            David Brett -  21/04/2017 - Initial Script Creation 
+            Trentent Tye - 28/08/2017 - Updated to use NitroConfigurationFunctions syntax and mechanisms
+        .LINK 
+        http://bretty.me.uk
+        #> 
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $True)] [PSObject]$NSSession,
+            [Parameter(Mandatory = $False)] [string]$Name
+        )
+
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+        If ($Name) {
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType csvserver -ResourceName $Name -Verbose:$VerbosePreference
+        }
+        Else {
+            $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType csvserver -Verbose:$VerbosePreference
+        }
+
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+        If ($response.PSObject.Properties['csvserver'])
+        {
+            return $response.csvserver
+        }
+        else
+        {
+            return $null
+        }
+    }
     #endregion
 
     #region Traffic Management - DNS
@@ -6813,11 +7274,12 @@ Set-StrictMode -Version Latest
         Write-Verbose "$($MyInvocation.MyCommand): Exit"
         If ($response.PSObject.Properties['systemfile'])
         {
+            Write-Output $true
             return $response.systemfile
         }
         else
         {
-            return $null
+            Write-Output $false
         }
     }
 
