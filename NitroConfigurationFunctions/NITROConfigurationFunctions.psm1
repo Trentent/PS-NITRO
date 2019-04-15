@@ -7986,6 +7986,211 @@ function New-NSVPNVServerAuthLDAPPolicyBinding {
 
 }
 
+    function Get-NSSSLVServer {
+    <#
+    .SYNOPSIS
+        Gets the properties of all SSL vServers
+    .DESCRIPTION
+        Gets the properties of all SSL vServers
+    .PARAMETER NSSession
+        An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+    .PARAMETER Name
+        Name of the virtual server.  If this parameter is not used all vServers are returned.
+    .EXAMPLE
+        Get-NSSSLVServer -NSSession $Session -Name "myLBVirtualServer"
+    .NOTES
+        Copyright (c) Citrix Systems, Inc. All rights reserved.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [PSObject]$NSSession,
+        [Parameter(Mandatory=$false)] [string]$Name
+    )
+
+    Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+    If (-not [string]::IsNullOrEmpty($VServerName)) {
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType sslvserver -ResourceName $Name -Verbose:$VerbosePreference
+    }
+    Else {
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType sslvserver -Verbose:$VerbosePreference
+    }
+    Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    If ($response.PSObject.Properties['sslvserver'])
+    {
+        if (!([string]::IsNullOrEmpty($Name))) {
+            foreach ($server in $response.sslvserver) {
+                if ($server.vserverName -like $name) {
+                    return $server
+                }
+            }
+        }
+        else {
+            return $response.sslvserver
+        }
+    }
+    else
+    {
+        return $null
+    }
+}
+
+    function Set-NSSSLVServer {
+    <#
+    .SYNOPSIS
+        Sets the properties of a VPN virtual server
+    .DESCRIPTION
+        Sets the properties of a VPN virtual server
+    .PARAMETER NSSession
+        An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+    .PARAMETER payload
+        Get the properties from Get-NSSSLVServer first and modify them and pass that to this function as the payload.
+    .EXAMPLE
+        Set-NSSSLVServer -NSSession $Session -Payload $payload
+    .NOTES
+        Copyright (c) Citrix Systems, Inc. All rights reserved.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [PSObject]$NSSession,
+        [Parameter(Mandatory=$true)] $payload
+    )
+
+    Begin {
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+    }
+    Process {
+        $payload = $payload | ConvertTo-Hashtable
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod PUT -ResourceType sslvserver -Payload $payload
+    }
+    End {
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+}
+
+#ConvertTo-HashTable from Adam Bertram https://4sysops.com/archives/convert-json-to-a-powershell-hash-table
+    function ConvertTo-Hashtable {
+    [CmdletBinding()]
+    [OutputType('hashtable')]
+    param (
+        [Parameter(ValueFromPipeline)]
+        $InputObject
+    )
+
+    process {
+        ## Return null if the input is null. This can happen when calling the function
+        ## recursively and a property is null
+        if ($null -eq $InputObject) {
+            return $null
+        }
+
+        ## Check if the input is an array or collection. If so, we also need to convert
+        ## those types into hash tables as well. This function will convert all child
+        ## objects into hash tables (if applicable)
+        if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
+            $collection = @(
+                foreach ($object in $InputObject) {
+                    ConvertTo-Hashtable -InputObject $object
+                }
+            )
+
+            ## Return the array but don't enumerate it because the object may be pretty complex
+            Write-Output -NoEnumerate $collection
+        } elseif ($InputObject -is [psobject]) { ## If the object has properties that need enumeration
+            ## Convert it to its own hash table and return it
+            $hash = @{}
+            foreach ($property in $InputObject.PSObject.Properties) {
+                $hash[$property.Name] = ConvertTo-Hashtable -InputObject $property.Value
+            }
+            $hash
+        } else {
+            ## If the object isn't an array, collection, or other object, it's already a hash table
+            ## So just return it.
+            $InputObject
+        }
+    }
+}
+
+
+    function Get-NSSSLParameter {
+    <#
+    .SYNOPSIS
+        Gets the SSL parameters
+    .DESCRIPTION
+        Gets the SSL parameters
+    .PARAMETER NSSession
+        An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+    .EXAMPLE
+        Get-NSSSLParameter -NSSession $Session
+    .NOTES
+        Copyright (c) Citrix Systems, Inc. All rights reserved.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [PSObject]$NSSession
+    )
+
+    Write-Verbose "$($MyInvocation.MyCommand): Enter"
+
+    If (-not [string]::IsNullOrEmpty($VServerName)) {
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType sslparameter -Verbose:$VerbosePreference
+    }
+    Else {
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod GET -ResourceType sslparameter -Verbose:$VerbosePreference
+    }
+    Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    If ($response.PSObject.Properties['sslparameter'])
+    {
+        if (!([string]::IsNullOrEmpty($Name))) {
+            foreach ($server in $response.sslparameter) {
+                if ($server.vserverName -like $name) {
+                    return $server
+                }
+            }
+        }
+        else {
+            return $response.sslparameter
+        }
+    }
+    else
+    {
+        return $null
+    }
+}
+
+    function Set-NSSSLParameter {
+    <#
+    .SYNOPSIS
+        Sets the SSL properties
+    .DESCRIPTION
+        Sets the SSL properties
+    .PARAMETER NSSession
+        An existing custom NetScaler Web Request Session object returned by Connect-NSAppliance
+    .PARAMETER payload
+        Get the properties from Get-NSSSLParameter first and modify them and pass that to this function as the payload.
+    .EXAMPLE
+        Set-NSSSLParameter -NSSession $Session -Payload $payload
+    .NOTES
+        Copyright (c) Citrix Systems, Inc. All rights reserved.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [PSObject]$NSSession,
+        [Parameter(Mandatory=$true)] $payload
+    )
+
+    Begin {
+        Write-Verbose "$($MyInvocation.MyCommand): Enter"
+    }
+    Process {
+        $payload = $payload | ConvertTo-Hashtable
+        $response = Invoke-NSNitroRestApi -NSSession $NSSession -OperationMethod PUT -ResourceType sslparameter -Payload $payload
+    }
+    End {
+        Write-Verbose "$($MyInvocation.MyCommand): Exit"
+    }
+}
+
     # Set-NSSFStore is part of the Citrix NITRO Module
 
 #endregion
