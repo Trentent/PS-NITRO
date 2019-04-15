@@ -358,6 +358,40 @@ Write-Host "Binding Lets Encrypt to the Unified Gateway"
 New-NSSSLVServerCertKeyBinding -NSSession $NSSession -CertKeyName "$keyName" -VirtualServerName "$UnifiedGatewayName"
 
 
+
+#region A+ SSL Labs
+# Let's Score B on SSLLabs https://www.citrix.com/blogs/2018/05/16/scoring-an-a-at-ssllabs-com-with-citrix-netscaler-q2-2018-update/
+#remove SSLv3 POODLE vulnerability
+$vServers = Get-NSSSLVServer -NSSession $NSSession
+foreach ($vServer in $vServers) {
+    if ($vServer.ssl3 -like "ENABLED") {
+        Write-Host "vServer $($vServer.vservername) has SSL3 enabled..."
+        $vServer.ssl3 = "DISABLED"
+        #remove properties that aren't processed through API yet.
+        $vServer.PSObject.Properties.Remove("snicert")
+        $vServer.PSObject.Properties.Remove("ca")
+        $vServer.PSObject.Properties.Remove("dhekeyexchangewithpsk")
+        $vServer.PSObject.Properties.Remove("dtlsflag")
+        $vServer.PSObject.Properties.Remove("invoke")
+        $vServer.PSObject.Properties.Remove("nonfipsciphers")
+        $vServer.PSObject.Properties.Remove("polinherit")
+        $vServer.PSObject.Properties.Remove("priority")
+        $vServer.PSObject.Properties.Remove("redirectportrewrite")
+        $vServer.PSObject.Properties.Remove("service")
+        $vServer.PSObject.Properties.Remove("skipcaname")
+        $vServer.PSObject.Properties.Remove("zerorttearlydata")
+        Set-NSSSLVServer -NSSession $NSSession -payload $vServer
+    }
+}
+
+# Allow secure renegotiation
+$SSLParameters = Get-NSSSLParameter -NSSession $NSSession 
+if ($SSLParameters.denysslreneg -notlike "NONSECURE") { 
+    $SSLParameters.denysslreneg = "NONSECURE"
+    Set-NSSSLParameter -NSSession $NSSession -payload $SSLParameters 
+}
+#endregion
+
 #New
 #endregion
 
